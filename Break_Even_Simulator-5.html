@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Break-Even Analysis Simulator</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: #f1f5f9; color: #172033; }
+  .app { max-width: 720px; margin: 20px auto; padding: 24px; background: white; border-radius: 16px; box-shadow: 0 5px 24px rgba(0,0,0,.09); }
+  h1 { margin: 0 0 8px; color: #174a7e; font-size: 27px; }
+  .intro { color: #526174; margin-bottom: 22px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  label { display: block; font-weight: 600; margin-bottom: 6px; }
+  input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; }
+  button { border: 0; border-radius: 8px; padding: 13px 16px; font-size: 16px; cursor: pointer; margin: 18px 8px 0 0; }
+  .primary { background: #174a7e; color: white; }
+  .secondary { background: #e2e8f0; color: #172033; }
+  .results { margin-top: 22px; padding: 18px; border-radius: 12px; background: #eff6ff; }
+  .results h2 { margin: 0 0 12px; font-size: 20px; }
+  .item { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #dbeafe; }
+  .item:last-child { border-bottom: 0; }
+  .value { font-weight: 700; text-align: right; }
+  .note { margin-top: 16px; color: #526174; font-size: 13px; line-height: 1.5; }
+  @media (max-width: 480px) { body { padding: 10px; } .app { padding: 18px; margin: 6px auto; } h1 { font-size: 23px; } }
+</style>
+</head>
+<body>
+<main class="app">
+  <h1>Mechanical Break-Even Simulator</h1>
+  <p class="intro">A simple calculator for a small mechanical manufacturing business.</p>
+
+  <div class="grid">
+    <div><label for="fixed">Fixed cost (₹)</label><input id="fixed" type="number" min="0" step="0.01" value="10000"></div>
+    <div><label for="variable">Variable cost per product (₹)</label><input id="variable" type="number" min="0" step="0.01" value="200"></div>
+    <div><label for="price">Selling price per product (₹)</label><input id="price" type="number" min="0" step="0.01" value="500"></div>
+    <div><label for="quantity">Number of products sold</label><input id="quantity" type="number" min="0" step="1" value="60"></div>
+  </div>
+
+  <button class="primary" onclick="calculate()">Calculate results</button>
+  <button class="secondary" onclick="resetForm()">Reset example</button>
+
+  <section class="results" aria-live="polite">
+    <h2>Your results</h2>
+    <div class="item"><span>Total production cost</span><span class="value" id="totalCost">₹22,000.00</span></div>
+    <div class="item"><span>Total revenue</span><span class="value" id="revenue">₹30,000.00</span></div>
+    <div class="item"><span>Profit / loss</span><span class="value" id="profit">₹8,000.00 profit</span></div>
+    <div class="item"><span>Break-even point</span><span class="value" id="breakEven">34 products</span></div>
+    <div class="item"><span>Profit margin</span><span class="value" id="margin">26.67%</span></div>
+    <p class="note" id="message">Example results use the values entered above. Change any value and select Calculate results.</p>
+  </section>
+  <p class="note"><b>Formula guide:</b> Total cost = fixed cost + (variable cost × quantity). Revenue = selling price × quantity. Profit = revenue − total cost. Break-even quantity = fixed cost ÷ (selling price − variable cost), rounded up to a whole product.</p>
+</main>
+<script>
+const money = n => "₹" + n.toLocaleString("en-IN", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+function calculate() {
+  const ids = ["fixed", "variable", "price", "quantity"];
+  const raw = ids.map(id => document.getElementById(id).value);
+  const nums = raw.map(Number);
+  const [f, v, p, q] = nums;
+  const msg = document.getElementById("message");
+  if (raw.some(x => x.trim() === "") || nums.some(x => !Number.isFinite(x) || x < 0) || !Number.isInteger(q)) {
+    msg.textContent = "Please enter valid non-negative values. Number of products sold must be a whole number.";
+    return;
+  }
+  const cost = f + v*q;
+  const revenue = p*q;
+  const profit = revenue-cost;
+  document.getElementById("totalCost").textContent = money(cost);
+  document.getElementById("revenue").textContent = money(revenue);
+  document.getElementById("profit").textContent = money(Math.abs(profit)) + (profit >= 0 ? " profit" : " loss");
+  document.getElementById("breakEven").textContent = p > v ? Math.ceil(f/(p-v)) + " products" : "Not achievable (selling price must exceed variable cost)";
+  document.getElementById("margin").textContent = revenue > 0 ? (profit/revenue*100).toFixed(2) + "%" : "N/A (zero revenue)";
+  msg.textContent = "Calculation complete. Compare these results with manual calculations to verify accuracy.";
+}
+function resetForm() {
+  document.getElementById("fixed").value = 10000;
+  document.getElementById("variable").value = 200;
+  document.getElementById("price").value = 500;
+  document.getElementById("quantity").value = 60;
+  calculate();
+}
+calculate();
+</script>
+</body>
+</html>
